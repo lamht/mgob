@@ -21,8 +21,8 @@ func gCloudUpload(file string, plan config.Plan) (string, error) {
 		return "", errors.Wrapf(err, "gcloud auth for plan %v failed", plan.Name)
 	}
 
-	upload := fmt.Sprintf("gsutil cp %v gs://%v",
-		file, plan.GCloud.Bucket)
+	upload := fmt.Sprintf("gsutil cp %v gs://%v/%v",
+		file, plan.GCloud.Bucket, file)
 
 	result, err := sh.Command("/bin/sh", "-c", upload).SetTimeout(time.Duration(plan.Scheduler.Timeout) * time.Minute).CombinedOutput()
 	output := ""
