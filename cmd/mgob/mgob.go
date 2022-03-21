@@ -7,7 +7,7 @@ import (
 	"syscall"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 
 	"github.com/stefanprodan/mgob/pkg/api"
 	"github.com/stefanprodan/mgob/pkg/backup"
@@ -22,19 +22,19 @@ var (
 )
 
 func beforeApp(c *cli.Context) error {
-	level, err := log.ParseLevel(c.GlobalString("LogLevel"))
+	level, err := log.ParseLevel(c.String("LogLevel"))
 	if err != nil {
 		log.Fatalf("unable to determine and set log level: %+v", err)
 	}
 	log.SetLevel(level)
 
-	if c.GlobalBool("JSONLog") {
+	if c.Bool("JSONLog") {
 		// platforms such as Google StackDriver want logs to stdout
 		log.SetOutput(os.Stdout)
 		log.SetFormatter(&log.JSONFormatter{})
 	}
 
-	log.Debug("log level set to ", c.GlobalString("LogLevel"))
+	log.Debug("log level set to ", c.String("LogLevel"))
 	return nil
 }
 
@@ -46,47 +46,59 @@ func main() {
 	app.Action = start
 	app.Before = beforeApp
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "ConfigPath,c",
-			Usage: "plan yml files dir",
-			Value: "/config",
-		},
-		cli.StringFlag{
-			Name:  "StoragePath,s",
-			Usage: "backup storage",
-			Value: "/storage",
-		},
-		cli.StringFlag{
-			Name:  "TmpPath,t",
-			Usage: "temporary backup storage",
-			Value: "/tmp",
-		},
-		cli.StringFlag{
-			Name:  "DataPath,d",
-			Usage: "db dir",
-			Value: "/data",
-		},
-		cli.IntFlag{
-			Name:  "Port,p",
+		// &cli.StringFlag{
+		// 	Name:  "ConfigPath",
+		// 	Aliases: []string{"c"},
+		// 	Usage: "plan yml files dir",
+		// 	Value: "/config",
+		// },
+		// &cli.StringFlag{
+		// 	Name:  "StoragePath",
+		// 	Aliases: []string{"s"},
+		// 	Usage: "backup storage",
+		// 	Value: "/storage",
+		// },
+		// &cli.StringFlag{
+		// 	Name:  "TmpPath",
+		// 	Aliases: []string{"t"},
+		// 	Usage: "temporary backup storage",
+		// 	Value: "/tmp",
+		// },
+		// &cli.StringFlag{
+		// 	Name:  "DataPath",
+		// 	Aliases: []string{"d"},
+		// 	Usage: "db dir",
+		// 	Value: "/data",
+		// },
+		&cli.IntFlag{
+			Name:  "Port",
+			Aliases: []string{"p"},
 			Usage: "HTTP port to listen on",
 			Value: 8090,
 		},
-		cli.StringFlag{
-			Name:  "Host,h",
-			Usage: "HTTP host to listen on",
-			Value: "",
-		},
-		cli.BoolFlag{
-			Name:  "JSONLog,j",
+		// &cli.StringFlag{
+		// 	Name:  "Host",
+		// 	Aliases: []string{"h"},
+		// 	Usage: "HTTP host to listen on",
+		// 	Value: "",
+		// },
+		&cli.BoolFlag{
+			Name:  "JSONLog",
+			Aliases: []string{"j"},
 			Usage: "logs in JSON format",
+			Value: false,
 		},
-		cli.StringFlag{
-			Name:  "LogLevel,l",
+		&cli.StringFlag{
+			Name:  "LogLevel",
+			Aliases: []string{"l"},
 			Usage: "logging threshold level: debug|info|warn|error|fatal|panic",
 			Value: "info",
 		},
 	}
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err != nil {
+        log.Fatal(err)
+    }
 }
 
 func start(c *cli.Context) error {
@@ -95,10 +107,10 @@ func start(c *cli.Context) error {
 	appConfig.LogLevel = c.String("LogLevel")
 	appConfig.JSONLog = c.Bool("JSONLog")
 	appConfig.Port = c.Int("Port")
-	appConfig.ConfigPath = c.String("ConfigPath")
-	appConfig.StoragePath = c.String("StoragePath")
-	appConfig.TmpPath = c.String("TmpPath")
-	appConfig.DataPath = c.String("DataPath")
+	appConfig.ConfigPath = "/config" //c.String("ConfigPath")
+	appConfig.StoragePath = "/storage" //c.String("StoragePath")
+	appConfig.TmpPath = "/tmp" //c.String("TmpPath")
+	appConfig.DataPath ="/data" //c.String("DataPath")
 	appConfig.Version = version
 
 	log.Infof("starting with config: %+v", appConfig)
